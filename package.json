@@ -73,10 +73,10 @@
       "cordova-plugin-splashscreen": {},
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-ionic-keyboard": {},
-      "com.ttv.face.plugin": {},
       "cordova-plugin-camera": {
         "ANDROIDX_CORE_VERSION": "1.6.+"
-      }
+      },
+      "com.ttv.face.plugin": {}
     },
     "platforms": [
       "android",

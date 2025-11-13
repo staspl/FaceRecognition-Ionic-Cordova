@@ -89,8 +89,8 @@ public class CameraActivity extends AppCompatActivity {
     private final int MSG_UPDATE_FACE = 0;
     private final int MSG_CLEAR_FACE = 1;
 
-    private final float THRESHOLD_REGISTER = 0.78f;
-    private final float THRESHOLD_VERIFY = 0.78f;
+    private final float THRESHOLD_REGISTER = 0.81f;
+    private final float THRESHOLD_VERIFY = 0.81f;
     private final float THRESHOLD_LIVENESS = 0.7f;
     
     /**

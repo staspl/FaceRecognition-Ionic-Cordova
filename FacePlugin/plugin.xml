@@ -19,8 +19,10 @@
             <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
             <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
         </config-file> -->
-        <config-file parent="/*" target="AndroidManifest.xml"></config-file>
-        <source-file src="src/android/FacePlugin.java" target-dir="src/com/ttv/face/plugin" />
+                <config-file parent="/*" target="AndroidManifest.xml">	        <uses-permission android:name="android.permission.CAMERA" />
+		<uses-feature android:name="android.hardware.camera" android:required="true" />
+	</config-file>
+                <source-file src="src/android/FacePlugin.java" target-dir="src/com/ttv/face/plugin" />
         <source-file src="src/android/CameraActivity.java" target-dir="src/com/ttv/facerecog" />
         <source-file src="src/android/FaceRectTransformer.java" target-dir="src/com/ttv/facerecog" />
         <source-file src="src/android/FaceRectView.java" target-dir="src/com/ttv/facerecog" />
@@ -49,12 +51,20 @@
       </feature>
     </config-file>
 
+    <preference name="CAMERA_USAGE_DESCRIPTION" default=" " />
+    <config-file target="*-Info.plist" parent="NSCameraUsageDescription">
+      <string>$CAMERA_USAGE_DESCRIPTION</string>
+    </config-file>
+
     <header-file src="src/ios/FacePlugin.h" target-dir="FacePlugin"/>
     <source-file src="src/ios/FacePlugin.m" target-dir="FacePlugin"/>
     <header-file src="src/ios/FaceView.h" target-dir="FacePlugin"/>
     <source-file src="src/ios/FaceView.m" target-dir="FacePlugin"/>
     <header-file src="src/ios/VideoViewController.h" target-dir="FacePlugin"/>
     <source-file src="src/ios/VideoViewController.mm" target-dir="FacePlugin"/>
+
+<header-file src="src/ios/FaceDetectionParam.h" target-dir="FacePlugin"/>
+    <source-file src="src/ios/FaceDetectionParam.m" target-dir="FacePlugin"/>
 
     <source-file src="src/ios/facesdk.framework" target-dir="lib" framework="true"/>
     <framework src="src/ios/facesdk.framework" embed="true" custom="true"/>

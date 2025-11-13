@@ -17,11 +17,12 @@
 #import <UIKit/UIKit.h>
 #import "facesdk.h"
 #import "FaceView.h"
+#import "FaceDetectionParam.h"
 
 #import <Cordova/CDV.h>
 
-#define THRESHOLD_REGISTER (0.78f)
-#define THRESHOLD_VERIFY (0.78f)
+#define THRESHOLD_REGISTER (0.81f)
+#define THRESHOLD_VERIFY (0.81f)
 #define THRESHOLD_LIVENESS (0.7f)
 
 extern NSMutableDictionary* g_user_list;
@@ -55,7 +56,9 @@ extern NSMutableDictionary* g_user_list;
     [super viewDidLoad];
                   
     _queue = dispatch_queue_create("net.bujige.testQueue", NULL);
-    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    // NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    AVCaptureDeviceDiscoverySession *discoverySession = [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInWideAngleCamera, AVCaptureDeviceTypeBuiltInTrueDepthCamera] mediaType:AVMediaTypeVideo position:AVCaptureDevicePositionUnspecified];
+    NSArray *devices = discoverySession.devices;
     AVCaptureDevice *deviceF;
     for (AVCaptureDevice *device in devices )
     {
@@ -167,7 +170,9 @@ extern NSMutableDictionary* g_user_list;
         [self.session removeInput:input];
     }
     
-    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    // NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    AVCaptureDeviceDiscoverySession *discoverySession = [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInWideAngleCamera, AVCaptureDeviceTypeBuiltInTrueDepthCamera] mediaType:AVMediaTypeVideo position:AVCaptureDevicePositionUnspecified];
+    NSArray *devices = discoverySession.devices;
     AVCaptureDevice *deviceF;
     for (AVCaptureDevice *device in devices)
     {
@@ -219,8 +224,6 @@ extern NSMutableDictionary* g_user_list;
     }
     [self.session startRunning];
 }
-
-
 
 - (UIImage *) imageFromSampleBuffer:(CMSampleBufferRef) sampleBuffer
 {
@@ -309,6 +312,17 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
     
     UIImage *image = [self imageFromSampleBuffer:sampleBuffer];
     
+    // Configure face detection parameters (similar to Android)
+    // Note: The iOS SDK currently doesn't support FaceDetectionParam in the API
+    // but we keep this for future compatibility and consistency with Android
+    FaceDetectionParam* param = [[FaceDetectionParam alloc] init];
+    param.check_liveness = true;
+    param.check_mouth_opened = true;
+    param.check_eye_closeness = true;
+    param.check_face_occlusion = true;
+    // param.check_liveness_level = 0;
+    
+    // Call face detection without parameters (current iOS SDK limitation)
     NSMutableArray* face_results = [FaceSDK faceDetection:image];
     
     if(face_results.count == 1) {
@@ -388,7 +402,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
             [dict setValue:face_boundary forKey:@"face_boundary"];
             [dict setValue:existsID forKey:@"face_id"];
             [dict setValue:[NSNumber numberWithInt:face.liveness > THRESHOLD_LIVENESS ? 1 : 0] forKey:@"liveness"];
-            [dict setValue:[NSNumber numberWithInt:face_results.count] forKey:@"face_count"];
+            [dict setValue:[NSNumber numberWithInt:(int)face_results.count] forKey:@"face_count"];
             
             [self.delegate onRecognized:dict];
         }
@@ -406,7 +420,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
             [dict setValue:face_boundary forKey:@"face_boundary"];
             [dict setValue:@"" forKey:@"face_id"];
             [dict setValue:[NSNumber numberWithInt:0] forKey:@"liveness"];
-            [dict setValue:[NSNumber numberWithInt:face_results.count] forKey:@"face_count"];
+            [dict setValue:[NSNumber numberWithInt:(int)face_results.count] forKey:@"face_count"];
             
             [self.delegate onRecognized:dict];
         }

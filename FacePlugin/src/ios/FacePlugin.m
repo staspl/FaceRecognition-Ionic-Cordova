@@ -2,7 +2,8 @@
 #import "VideoViewController.h"
 #import "facesdk.h"
 
-#define THRESHOLD_REGISTER (0.78f)
+// #define THRESHOLD_REGISTER (0.78f)
+#define THRESHOLD_REGISTER (0.81f)
 
 NSMutableDictionary* g_user_list;
 
@@ -57,6 +58,14 @@ NSMutableDictionary* g_user_list;
         NSString* face_data = [user objectForKey:@"data"];
         g_user_list[face_id] = face_data;
     }
+
+    // Send result back to JavaScript
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc]init];
+    [dict setValue:[NSNumber numberWithInt:[userList count]] forKey:@"CountFaces"];
+
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+
 }
 
 - (void) clear_data:(CDVInvokedUrlCommand *)command
@@ -83,6 +92,15 @@ NSMutableDictionary* g_user_list;
     NSLog(@"set activation result: %d", ret);
     
     [FaceSDK initSDK];
+
+    // Send result back to JavaScript
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc]init];
+    [dict setValue:[NSNumber numberWithInt:ret] forKey:@"ret"];
+    [dict setValue:license forKey:@"license"];
+    
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+
 }
 
 - (void) close_camera:(CDVInvokedUrlCommand *)command
@@ -123,6 +141,13 @@ NSMutableDictionary* g_user_list;
     
     NSMutableDictionary* jsonData = [command.arguments objectAtIndex:0];
     NSString* base64Image = [jsonData objectForKey:@"image"];
+    NSString* face_id = [jsonData objectForKey:@"face_id"];
+
+	// float threshold = THRESHOLD_REGISTER;
+    // threshold = [jsonData objectForKey:@"threshold"];
+	// float threshold = [[jsonData objectForKey:@"threshold"] THRESHOLD_REGISTER];
+	NSNumber *thresholdValue = [jsonData objectForKey:@"threshold"];
+	float threshold = thresholdValue ? [thresholdValue floatValue] : 0.85f;
 
     if(g_user_list == nil) {
         g_user_list = [[NSMutableDictionary alloc] init];
@@ -180,14 +205,19 @@ NSMutableDictionary* g_user_list;
             }
         }
 
-        if(maxScore > THRESHOLD_REGISTER) {
+        if(maxScore > threshold ) {
             existsID = maxScoreId;
         }
 
         NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+        [dict setValue:face_id forKey:@"face_id"];
         [dict setValue:encodedFeature forKey:@"data"];
         [dict setValue:encodedImage forKey:@"image"];
         [dict setValue:existsID forKey:@"exists"];
+
+    	// [dict setValue:[NSNumber numberWithFloat:maxScore] forKey:@"maxScore"];
+    	[dict setValue:[NSNumber numberWithFloat:floorf(maxScore * 100 + 0.5) / 100] forKey:@"maxScore"];
+    	[dict setValue:[NSNumber numberWithFloat:floorf(threshold * 100 + 0.5) / 100] forKey:@"threshold"];
 
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict];
         [self.commandDelegate sendPluginResult:result callbackId:self.command.callbackId];
